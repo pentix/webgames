@@ -12,7 +12,10 @@ class WebgameServer(socketserver.BaseRequestHandler):
 		try:
 			while True:
 				self.data = self.request.recv(128)
-				print(self.data)
+				if self.data != b'':
+					print(self.data)
+					print('Number of Clients: ' + str(numberOfClients) + '!')
+				
 				self.request.sendall(b'Number of Clients: ' + bytes(str.encode(str(numberOfClients))) + b'!\n')
 
 		except BrokenPipeError:
@@ -25,7 +28,16 @@ class ThreadedServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 
 if __name__ == "__main__":
-	HOST, PORT = "", 5051
+	try:
+		HOST, PORT = "", 5051
+		
+		serv = ThreadedServer((HOST, PORT), WebgameServer)
+		serv.allow_reuse_address = True
+		serv.serve_forever()
 	
-	serv = ThreadedServer((HOST, PORT), WebgameServer)
-	serv.serve_forever()
+	except KeyboardInterrupt:
+		print("\nShutting down server")
+		
+		serv.shutdown()
+		serv.server_close()
+
