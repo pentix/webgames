@@ -14,6 +14,7 @@ clients = dict()
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
+        print("/ REQUEST :)");
         self.write("This is your response")
         self.finish()
 
