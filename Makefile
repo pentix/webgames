@@ -1,20 +1,16 @@
-TSC=tsc
-TSCFLAGS=-t ES5
+TSC = tsc
+TSCFLAGS = -t ES5
 
-BUILDDIR=build
-FRONTENDDIR=frontend
+BUILDDIR = build
+FRONTENDDIR = frontend
 
-F_SOURCES := $(wildcard $(FRONTENDDIR)/*.ts)
-F_TARGETS=$(addprefix $(BUILDDIR),$(patsubst %.ts,%.js,$(F_SOURCES)))
+F_SOURCES = $(wildcard src/$(FRONTENDDIR)/*.ts)
+F_TARGETS = $(BUILDDIR)/$(FRONTENDDIR)/main.js #$(addprefix $(BUILDDIR),$(patsubst src/%.ts,/%.js,$(F_SOURCES)))
 
 main: $(F_TARGETS)
+	@echo $<
 
-$(F_TARGETS):$(FRONTENDDIR)
-	$(TSC) $(TSCFLAGS) --out $(BUILDDIR)/$(FRONTENDDIR)/main.js $(FRONTENDDIR)/*.ts
-	@cp $(FRONTENDDIR)/*.html $(BUILDDIR)/$(FRONTENDDIR)/
-
-$(FRONTENDDIR): $(BUILDDIR)
-	@mkdir -p $(BUILDDIR)/$(FRONTENDDIR)
-
-$(BUILDDIR):
-	@mkdir -p $(BUILDDIR)
+$(F_TARGETS): $(F_SOURCES)
+	mkdir -p $(BUILDDIR)/$(FRONTENDDIR)
+	$(TSC) $(TSCFLAGS) --out $@ $(F_SOURCES)
+	cp src/$(FRONTENDDIR)/*.html $(BUILDDIR)/$(FRONTENDDIR)/
