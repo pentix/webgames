@@ -14,3 +14,7 @@ $(F_TARGETS): $(F_SOURCES)
 	mkdir -p $(BUILDDIR)/$(FRONTENDDIR)
 	$(TSC) $(TSCFLAGS) --out $@ $(F_SOURCES)
 	cp src/$(FRONTENDDIR)/*.html $(BUILDDIR)/$(FRONTENDDIR)/
+
+clean:
+	rm -rf $(BUILDDIR)
+
