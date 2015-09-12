@@ -1,46 +1,43 @@
 #!/usr/bin/env python3
 
-import tornado.ioloop
-import tornado.web
-import tornado.websocket
+import socketserver
 
-from tornado.options import define, options, parse_command_line
+numberOfClients = 0
 
-define("port", default=8888, help="run on the given port", type=int)
+class WebgameServer(socketserver.BaseRequestHandler):
+	def handle(self):
+		global numberOfClients
+		numberOfClients = numberOfClients + 1
+		
+		try:
+			while True:
+				self.data = self.request.recv(128)
+				if self.data != b'':
+					print(self.data)
+					print('Number of Clients: ' + str(numberOfClients) + '!')
+				
+				self.request.sendall(b'Number of Clients: ' + bytes(str.encode(str(numberOfClients))) + b'!\n')
 
-# we gonna store clients in dictionary..
-clients = dict()
+		except BrokenPipeError:
+			pass
+			
+		numberOfClients = numberOfClients - 1
 
-class IndexHandler(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
-    def get(self):
-        print("/ REQUEST :)");
-        self.write("This is your response")
-        self.finish()
+class ThreadedServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+	pass
 
-class WebSocketHandler(tornado.websocket.WebSocketHandler):
-    def open(self, *args):
-        self.id = self.get_argument("Id")
-        self.stream.set_nodelay(True)
-        clients[self.id] = {"id": self.id, "object": self}
 
-    def on_message(self, message):        
-        """
-        when we receive some message we want some message handler..
-        for this example i will just print message to console
-        """
-        print("Client %s received a message : %s" % (self.id, message))
-        
-    def on_close(self):
-        if self.id in clients:
-            del clients[self.id]
+if __name__ == "__main__":
+	try:
+		HOST, PORT = "", 5051
+		
+		serv = ThreadedServer((HOST, PORT), WebgameServer)
+		serv.allow_reuse_address = True
+		serv.serve_forever()
+	
+	except KeyboardInterrupt:
+		print("\nShutting down server")
+		
+		serv.shutdown()
+		serv.server_close()
 
-app = tornado.web.Application([
-    (r'/', IndexHandler),
-    (r'/ws', WebSocketHandler),
-])
-
-if __name__ == '__main__':
-    parse_command_line()
-    app.listen(options.port)
-    tornado.ioloop.IOLoop.instance().start()
