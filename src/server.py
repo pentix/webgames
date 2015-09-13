@@ -6,11 +6,32 @@ import threading
 from urllib.parse import parse_qs
 import cgi
 
+
+def getFileContent(fn):
+	try:
+		f = open(fn, "r")
+		t = f.read()
+		f.close()
+		
+		return t
+	
+	except:
+		return 1
+
+
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		self.send_response(200)
 		self.end_headers()
-		message = bytes('<html><body><form method="POST" action="/login">Name: <input type="text" name="name"><input type="submit" value="Login"></form>', 'utf-8')
+		
+		if self.path == "/" or self.path == "/index.html":
+			message = bytes(getFileContent("frontend/index.html"), 'utf-8')
+		elif self.path == "/main.js":
+			message = bytes(getFileContent("frontend/main.js"), 'utf-8')
+		else:
+			message = b'Error: File not found'
+		
+		
 		self.wfile.write(message)
 
 		return
