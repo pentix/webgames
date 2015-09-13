@@ -1,43 +1,62 @@
 #!/usr/bin/env python3
 
-import socketserver
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
+import threading
+from urllib.parse import parse_qs
+import cgi
 
-numberOfClients = 0
+class Handler(BaseHTTPRequestHandler):
+	def do_GET(self):
+		self.send_response(200)
+		self.end_headers()
+		message = bytes('<html><body><form method="POST" action="/login">Name: <input type="text" name="name"><input type="submit" value="Login"></form>', 'utf-8')
+		self.wfile.write(message)
 
-class WebgameServer(socketserver.BaseRequestHandler):
-	def handle(self):
-		global numberOfClients
-		numberOfClients = numberOfClients + 1
+		return
+
+
+	def do_POST(self):
+		form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ = {'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type']})
+
+		print("'" + form["name"].value + "'")
 		
-		try:
-			while True:
-				self.data = self.request.recv(128)
-				if self.data != b'':
-					print(self.data)
-					print('Number of Clients: ' + str(numberOfClients) + '!')
-				
-				self.request.sendall(b'Number of Clients: ' + bytes(str.encode(str(numberOfClients))) + b'!\n')
-
-		except BrokenPipeError:
-			pass
+		if self.path == "/login":
+			if form["name"].value == "fun":
+				self.send_response(200)
+				self.end_headers()
+				message = bytes('<html><body><h1>YIPIII</h1>', 'utf-8')
+				self.wfile.write(message)
+			else:
+				self.send_response(403)
+				self.end_headers()
+				message = bytes('<html><body><h1>Fuuuuu</h1>', 'utf-8')
+				self.wfile.write(message)				
 			
-		numberOfClients = numberOfClients - 1
+			
+		
+		return
+			
+			
 
-class ThreadedServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 	pass
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	try:
 		HOST, PORT = "", 5051
-		
-		serv = ThreadedServer((HOST, PORT), WebgameServer)
-		serv.allow_reuse_address = True
-		serv.serve_forever()
-	
+		server = ThreadedHTTPServer((HOST, PORT), Handler)
+		print('Starting server, use <Ctrl-C> to stop')
+
+		server.allow_reuse_address = True
+		server.serve_forever()
+
 	except KeyboardInterrupt:
 		print("\nShutting down server")
-		
-		serv.shutdown()
-		serv.server_close()
 
+		server.shutdown()
+		server.server_close()
+    
+    
+   
