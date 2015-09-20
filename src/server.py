@@ -39,16 +39,21 @@ class Handler(BaseHTTPRequestHandler):
 
 	def do_POST(self):
 		form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ = {'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type']})
-
-		print("'" + form["name"].value + "'")
 		
 		if self.path == "/login":
-			if form["name"].value == "fun":
+			print("Login attempt: User=" + form["name"].value + "\t Password=" + form["password"].value)
+			
+			
+			# User: fun		Pw: demo
+			
+			if form["name"].value == "fun" and form["password"].value == "2a97516c354b68848cdbd8f54a226a0a55b21ed138e207ad6c5cbb9c00aa5aea":
+				print("[LOGIN Sucessful] User " + form["name"].value + " logged in!")
 				self.send_response(200)
 				self.end_headers()
 				message = bytes('<html><body><h1>YIPIII</h1>', 'utf-8')
 				self.wfile.write(message)
 			else:
+				print("[LOGIN Failed] User " + form["name"].value + " can't login!")
 				self.send_response(403)
 				self.end_headers()
 				message = bytes('<html><body><h1>Fuuuuu</h1>', 'utf-8')
